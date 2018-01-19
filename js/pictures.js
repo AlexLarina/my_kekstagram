@@ -70,3 +70,7 @@ picturesContainer.appendChild(createFragment(picsArray));
 
 // galleryOverlay.classList.remove('hidden');
 renderOverlay(galleryOverlay, picsArray[0]);
+
+/*
+i did my own repo :3
+*/
