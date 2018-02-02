@@ -12,9 +12,13 @@ var COMMENTS = [
   'Лица у людей на фотке перекошены, как будто их избивают. Как можно было поймать такой неудачный момент?!'
 ];
 
+var ENTER_KEYCODE = 13;
+var ESC_KEYCODE = 27;
+
 var pictureTemplate = document.querySelector('#picture-template').content.querySelector('.picture');
 var picturesContainer = document.querySelector('.pictures');
 var galleryOverlay = document.querySelector('.gallery-overlay');
+var overlayClose = document.querySelector('.gallery-overlay-close');
 
 var getRandFromRange = function (min, max) {
   return Math.floor(Math.random() * (max - min)) + min;
@@ -44,13 +48,20 @@ var renderPicture = function (picture) {
   pictureElement.querySelector('.picture-likes').textContent = picture.likes;
   pictureElement.querySelector('.picture-comments').textContent = picture.comments;
 
+  pictureElement.addEventListener('click', function (evt) {
+    evt.preventDefault();
+    pictureClickHandler(evt);
+  });
+
   return pictureElement;
 };
 
-var renderOverlay = function (overlay, picture) {
-  overlay.querySelector('.gallery-overlay-image').src = picture.url;
-  overlay.querySelector('.likes-count').textContent = picture.likes;
-  overlay.querySelector('.comments-count').textContent = picture.comments.length;
+var renderOverlay = function (picture) {
+  galleryOverlay.querySelector('.gallery-overlay-image').src = picture.querySelector('img').src;
+  galleryOverlay.querySelector('.likes-count').textContent = picture.querySelector('.picture-likes').textContent;
+  galleryOverlay.querySelector('.comments-count').textContent = picture.querySelector('.picture-comments').textContent;
+
+
 };
 
 var createFragment = function (pics) {
@@ -63,10 +74,35 @@ var createFragment = function (pics) {
   return fragment;
 };
 
+var pictureClickHandler = function (evt) {
+  var currentPicture = evt.currentTarget;
+  // console.log(currentPicture);
+  galleryOverlay.classList.remove('hidden');
+  renderOverlay(currentPicture);
+};
+
+var overlayCloseHandler = function () {
+  galleryOverlay.classList.add('hidden');
+};
+
+var overlayClosePressHandler = function (evt) {
+  if (evt.keyCode === ESC_KEYCODE) {
+    // console.log('press works');
+    overlayCloseHandler();
+  }
+};
+
+var overlayFocusCloseHandler = function (evt) {
+  if (evt.keyCode === ENTER_KEYCODE) {
+    console.log('focus works');
+    overlayCloseHandler();
+  }
+};
+
 var picsArray = createPictureArray(PICTURE_NUMBER);
 // console.log(picsArray);
 
 picturesContainer.appendChild(createFragment(picsArray));
-
-// galleryOverlay.classList.remove('hidden');
-renderOverlay(galleryOverlay, picsArray[0]);
+overlayClose.addEventListener('click', overlayCloseHandler);
+overlayClose.addEventListener('keydown', overlayFocusCloseHandler);
+document.addEventListener('keydown', overlayClosePressHandler);
