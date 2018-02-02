@@ -106,3 +106,6 @@ picturesContainer.appendChild(createFragment(picsArray));
 overlayClose.addEventListener('click', overlayCloseHandler);
 overlayClose.addEventListener('keydown', overlayFocusCloseHandler);
 document.addEventListener('keydown', overlayClosePressHandler);
+/*
+i did my own repo :3
+*/
