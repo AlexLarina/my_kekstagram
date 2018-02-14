@@ -101,6 +101,7 @@ var overlayFocusCloseHandler = function (evt, overlay) {
 var picsArray = createPictureArray(PICTURE_NUMBER);
 
 picturesContainer.appendChild(createFragment(picsArray));
+
 overlayClose.addEventListener('click', function () {
   overlayCloseHandler(galleryOverlay);
 });
