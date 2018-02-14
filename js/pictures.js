@@ -50,7 +50,7 @@ var renderPicture = function (picture) {
 
   pictureElement.addEventListener('click', function (evt) {
     evt.preventDefault();
-    pictureClickHandler(evt);
+    pictureClickHandler(evt, galleryOverlay);
   });
 
   return pictureElement;
@@ -60,8 +60,6 @@ var renderOverlay = function (picture) {
   galleryOverlay.querySelector('.gallery-overlay-image').src = picture.querySelector('img').src;
   galleryOverlay.querySelector('.likes-count').textContent = picture.querySelector('.picture-likes').textContent;
   galleryOverlay.querySelector('.comments-count').textContent = picture.querySelector('.picture-comments').textContent;
-
-
 };
 
 var createFragment = function (pics) {
@@ -74,35 +72,159 @@ var createFragment = function (pics) {
   return fragment;
 };
 
-var pictureClickHandler = function (evt) {
+var pictureClickHandler = function (evt, overlay) {
   var currentPicture = evt.currentTarget;
-  // console.log(currentPicture);
-  galleryOverlay.classList.remove('hidden');
+  overlayOpenHandler(overlay);
   renderOverlay(currentPicture);
 };
 
-var overlayCloseHandler = function () {
-  galleryOverlay.classList.add('hidden');
+var overlayOpenHandler = function (overlay) {
+  overlay.classList.remove('hidden');
 };
 
-var overlayClosePressHandler = function (evt) {
+var overlayCloseHandler = function (overlay) {
+  overlay.classList.add('hidden');
+};
+
+var overlayClosePressHandler = function (evt, overlay) {
   if (evt.keyCode === ESC_KEYCODE) {
-    // console.log('press works');
-    overlayCloseHandler();
+    overlayCloseHandler(overlay);
   }
 };
 
-var overlayFocusCloseHandler = function (evt) {
+var overlayFocusCloseHandler = function (evt, overlay) {
   if (evt.keyCode === ENTER_KEYCODE) {
-    console.log('focus works');
-    overlayCloseHandler();
+    overlayCloseHandler(overlay);
   }
 };
 
 var picsArray = createPictureArray(PICTURE_NUMBER);
-// console.log(picsArray);
 
 picturesContainer.appendChild(createFragment(picsArray));
-overlayClose.addEventListener('click', overlayCloseHandler);
-overlayClose.addEventListener('keydown', overlayFocusCloseHandler);
-document.addEventListener('keydown', overlayClosePressHandler);
+overlayClose.addEventListener('click', function () {
+  overlayCloseHandler(galleryOverlay);
+});
+overlayClose.addEventListener('keydown', function (evt) {
+  overlayFocusCloseHandler(evt, galleryOverlay);
+});
+document.addEventListener('keydown', function (evt) {
+  overlayClosePressHandler(evt, galleryOverlay);
+});
+
+var uploadForm = document.querySelector('#upload-select-image');
+var uploadImage = uploadForm.querySelector('#upload-file');
+var uploadImagePreview = uploadForm.querySelector('.effect-image-preview');
+var uploadOverlay = uploadForm.querySelector('.upload-overlay');
+var uploadFormClose = uploadForm.querySelector('.upload-form-cancel');
+var uploadFormHashtags = uploadForm.querySelector('.upload-form-hashtags');
+
+uploadImage.addEventListener('change', function () {
+  overlayOpenHandler(uploadOverlay);
+});
+
+uploadFormClose.addEventListener('click', function () {
+  overlayCloseHandler(uploadOverlay);
+});
+
+uploadFormClose.addEventListener('keydown', function (evt) {
+  overlayFocusCloseHandler(evt, uploadOverlay);
+});
+
+document.addEventListener('keydown', function (evt) {
+  overlayClosePressHandler(evt, uploadOverlay);
+});
+
+var buttonResizeDec = uploadForm.querySelector('.upload-resize-controls-button-dec');
+var buttonResizeInс = uploadForm.querySelector('.upload-resize-controls-button-inc');
+var buttonResizeValue = uploadForm.querySelector('.upload-resize-controls-value');
+
+var rescaleHandler = function (direction) {
+  var step = 25;
+  var min = 0;
+  var max = 100;
+  var buttonValue = parseInt(buttonResizeValue.value, 10);
+
+  if (direction === 'decrease') {
+    buttonResizeValue.value = (buttonValue - step) > min ? buttonValue - step + '%' : buttonValue = 0 + '%';
+  }
+  if (direction === 'increase') {
+    buttonResizeValue.value = (buttonValue + step) < max ? buttonValue + step + '%' : buttonValue = 100 + '%';
+  }
+
+  uploadImagePreview.style.transform = 'scale(' + parseInt(buttonResizeValue.value, 10) / 100 + ')';
+};
+
+buttonResizeDec.addEventListener('click', function () {
+  rescaleHandler('decrease');
+});
+
+buttonResizeInс.addEventListener('click', function () {
+  rescaleHandler('increase');
+});
+
+var uploadEffects = uploadForm.querySelector('.upload-effect-controls');
+
+uploadEffects.addEventListener('click', function (evt) {
+  if (evt.target.type === 'radio') {
+    removeEffects(uploadImagePreview);
+    var effectClass = 'effect-' + evt.target.value;
+    uploadImagePreview.classList.add(effectClass);
+  }
+});
+
+var removeEffects = function (element) {
+  element.classList.forEach(function (item) {
+    if (item !== 'effect-image-preview') {
+      uploadImagePreview.classList.remove(item);
+    }
+  });
+};
+
+var setInvalid = function (target, message) {
+  target.style.borderColor = 'red';
+  target.setCustomValidity(message);
+};
+
+var setValid = function (target) {
+  target.style.borderColor = '';
+  target.setCustomValidity('');
+};
+
+uploadFormHashtags.addEventListener('change', function (evt) {
+  var tags = evt.target.value.toLowerCase().split(' ');
+
+  if (tags.length > 5) {
+    setInvalid(uploadFormHashtags, 'Число тегов не должно превышать 2');
+    return;
+  } else {
+    setValid(uploadFormHashtags);
+  }
+
+  tags.forEach(function (item) {
+    if (item[0] !== '#') {
+      setInvalid(uploadFormHashtags, 'Теги должны начинаться с #');
+      return;
+    } else {
+      setValid(uploadFormHashtags);
+    }
+
+    if (item.length > 20) {
+      setInvalid(uploadFormHashtags, 'Длина не больше 20 символов');
+      return;
+    } else {
+      setValid(uploadFormHashtags);
+    }
+  });
+
+  for (var i = 0; i < tags.length - 1; i++) {
+    for (var j = i + 1; j < tags.length; j++) {
+      if (tags[i] === tags[j]) {
+        setInvalid(uploadFormHashtags, 'Теги не должны повторяться');
+        return;
+      } else {
+        setValid(uploadFormHashtags);
+      }
+    }
+  }
+
+});
